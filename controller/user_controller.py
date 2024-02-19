@@ -1,5 +1,5 @@
 from models.user_model import User
-from flask import jsonify, request
+from flask import jsonify, request, session
 
 def login():
     try:
@@ -9,9 +9,12 @@ def login():
         
         user = User.objects(email=email).first()
         
-        if not user or not user.verify_password(password):
-            return jsonify({'error': 'invalid email or password'}), 400
-                
+        if not user or not user.verify_password(password) or user.isAdmin or request.method != 'POST':
+            return jsonify({'error': 'Bad request or invalid email or password'}), 400
+        
+        session["_id"] = str(user.id)
+        session["isAuthenticated"] = True    
+        
         return jsonify({'message': 'User logged in successfully'}), 200
 
     except Exception as error: 
@@ -27,7 +30,12 @@ def login_admin():
         if email and password and request.method == 'POST':
             user = User.objects(email=email).first()
             if user and user.verify_password(password) and user.isAdmin:
-                return jsonify({'message': 'Admin logged in successfully'}), 200
+                
+                session["_id"] = str(user.id)
+                session["isAuthenticated"] = True
+                session["isAdmin"] = True
+                
+                return jsonify({'message': 'Admin logged in successfully'}), 
             else:
                 return jsonify({'error': 'invalid email or password'}), 400
         else:
@@ -36,6 +44,7 @@ def login_admin():
         return jsonify({'error': error }), 500
 
 def logout():
+    session.clear()
     return jsonify({'message': 'User logged out successfully'}), 200
 
 def signup():
@@ -45,7 +54,7 @@ def signup():
         email = json.get('email')
         password = json.get('password')
         
-        if not (name and email and password):
+        if not (name and email and password) and not request.method == 'POST':
             return jsonify({'error': 'Bad request, missing fullname, email, or password'}), 400
         
         if User.objects(email=email):
