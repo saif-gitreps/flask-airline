@@ -12,6 +12,26 @@ def search_flights():
         _from = data['from']
         destination = data['destination']
         flightDate = data['flightDate']
+        
+        query = {
+            "isBooked": False
+        }
+        if _from:
+            query['_from'] = _from
+        if destination:
+            query['destination'] = destination
+        if flightDate:
+            query['flightDate'] = flightDate
+        
+        if _from and destination:
+            flights = Flight.objects(_from=_from, destination=destination, isBooked=False)
+        elif _from and flightDate:
+            flights = Flight.objects(_from=_from, flightDate=flightDate, isBooked=False)
+        elif destination and flightDate:
+            flights = Flight.objects(destination=destination, flightDate=flightDate, isBooked=False)
+        else:
+            flights = Flight.objects(**query)
+            
 
         flights = Flight.objects(_from=_from, destination=destination, flightDate=flightDate, isBooked=False)
         
@@ -57,6 +77,9 @@ def add_flight():
         flightDate = data.get('flightDate' )
         date_format = "%Y-%m-%dT%H:%M:%S"
         
+        if Flight.objects(seatNumber=data.get('seatNumber') ,flightNumber=data.get('flightNumber')):
+            return jsonify({'error': 'Flight with this seat number already exists'}), 400
+        
         flight = Flight(
             adminId=session.get("_id"),
             flightNumber=data.get('flightNumber'),
@@ -69,6 +92,21 @@ def add_flight():
         flight.save()
         
         return jsonify({'message': 'Flight added successfully'}), 200
+    
+    except Exception as error:
+        return jsonify({'error': str(error)}), 500
+
+def get_flight_by_id(flightId):
+    try:
+        if not session.get("isAdmin") and not session.get("isAuthenticated"):
+            return jsonify({'error': 'User not authenticated'}), 401
+        
+        flight = Flight.objects(id=flightId).first()
+        
+        if not flight:
+            return jsonify({'error': 'Flight not found'}), 404
+        
+        return jsonify(flight.to_json()), 200
     
     except Exception as error:
         return jsonify({'error': str(error)}), 500

@@ -15,7 +15,7 @@ class Booking(Document):
 
     def to_json(self):
         return {
-            "id": str(self.id),
+            "_id": str(self.id),
             "customerId": str(self.customerId.id),  
             "flightId": str(self.flightId.id),    
             "seatNumber": self.seatNumber,

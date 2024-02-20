@@ -7,14 +7,18 @@ def book_flight(flightId):
         if not session.get('isAuthenticated'):
             return jsonify({'error': 'User not authenticated'}), 401
               
-        flight = Flight.objects(id=flightId).first()
+        customerId = session.get("_id")
         
-        customerId = request.session['_id']
+        flight = Flight.objects(id=flightId).first()
         
         if not flight or flight.isBooked == True:
             return jsonify({'error': 'Flight not found or is booked already'}), 404
         
-        bookedFlight = Booking(customerId = customerId, flightId = flightId, seatNumber = flight.seatNumber)
+        bookedFlight = Booking(
+            customerId = customerId, 
+            flightId = flightId, 
+            seatNumber = flight.seatNumber
+        )
         
         flight = Flight.objects(id=flightId).update(isBooked=True)
         bookedFlight.save()
@@ -30,11 +34,26 @@ def get_bookings():
         if not session.get('isAuthenticated'):
             return jsonify({'error': 'User not authenticated'}), 401
         
-        customerId = session['_id']
+        customerId = session.get("_id")
         
         bookings = Booking.objects(customerId=customerId)
         
-        return jsonify(bookings), 200
+        all_bookings = []
+        for booking in bookings:
+            booking_data = booking.to_json()
+            flight = Flight.objects(id=booking_data['flightId']).first() 
+            if flight:
+                flight = {
+                    "flightNumber": flight.flightNumber,
+                    "from": flight._from,
+                    "destination": flight.destination,
+                    "flightDate": flight.flightDate,
+                    "isBooked": flight.isBooked
+                }
+                booking_data['flight'] = flight
+            all_bookings.append(booking_data)
+        
+        return jsonify({"message": "User bookings retrieved successfully", "bookings": all_bookings}), 200
     
     except Exception as error:
         return jsonify({'error': str(error)}), 500
