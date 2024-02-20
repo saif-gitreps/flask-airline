@@ -23,25 +23,25 @@ def login():
 
 def login_admin():
     try:
-        json = request.json
-        email = json.get('email')
-        password = json.get('password')
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
         
-        if email and password and request.method == 'POST':
-            user = User.objects(email=email).first()
-            if user and user.verify_password(password) and user.isAdmin:
-                
-                session["_id"] = str(user.id)
-                session["isAuthenticated"] = True
-                session["isAdmin"] = True
-                
-                return jsonify({'message': 'Admin logged in successfully'}), 
-            else:
-                return jsonify({'error': 'invalid email or password'}), 400
-        else:
+        if not email or not password or request.method != 'POST':
             return jsonify({'error': 'Bad request'}), 400
+            
+        user = User.objects(email=email).first()
+        if not user or not user.verify_password(password) or not user.isAdmin:
+            return jsonify({'error': 'Invalid email or password'}), 400
+                
+        session["_id"] = str(user.id)
+        session["isAuthenticated"] = True
+        session["isAdmin"] = True
+                
+        return jsonify({'message': 'Admin logged in successfully'}), 200  
+    
     except Exception as error:
-        return jsonify({'error': error }), 500
+        return jsonify({'error': str(error)}), 500
 
 def logout():
     session.clear()
@@ -50,17 +50,17 @@ def logout():
 def signup():
     try:
         json = request.json
-        name = json.get('fullname')
+        fullname = json.get('fullname')
         email = json.get('email')
         password = json.get('password')
         
-        if not (name and email and password) and not request.method == 'POST':
+        if not (fullname and email and password) and not request.method == 'POST':
             return jsonify({'error': 'Bad request, missing fullname, email, or password'}), 400
         
         if User.objects(email=email):
             return jsonify({'error': 'User with this email already exists'}), 400
 
-        user = User(name=name, email=email)
+        user = User(fullname=fullname, email=email)
         user.set_password(password)
         user.save()
 
@@ -69,4 +69,24 @@ def signup():
     except Exception as error:
         return jsonify({'error': str(error)}), 500
         
-    
+def signup_new_admin():
+    try:
+        json = request.json
+        fullname = json.get('fullname')
+        email = json.get('email')
+        password = json.get('password')
+        
+        if not (fullname and email and password) and not request.method == 'POST':
+            return jsonify({'error': 'Bad request, missing fullname, email, or password'}), 400
+        
+        if User.objects(email=email):
+            return jsonify({'error': 'User with this email already exists'}), 400
+
+        user = User(fullname=fullname, email=email, isAdmin=True)
+        user.set_password(password)
+        user.save()
+
+        return jsonify({'message': 'Admin added successfully'}), 201
+
+    except Exception as error:
+        return jsonify({'error': str(error)}), 500

@@ -5,10 +5,10 @@ import os
 
 load_dotenv()
 
-connect(host=os.getenv("MONGO_URI"))
+connect(host=os.getenv("MONGO_URI"), db="Airline")
 
 class Flight(Document):
-    adminId = StringField(ReferenceField("User"))
+    adminId = ReferenceField("User") 
     flightNumber = StringField(required=True)
     flightDate = DateTimeField(required=True)
     _from = StringField(required=True)
@@ -20,11 +20,11 @@ class Flight(Document):
     def to_json(self):
         return {
             "id": str(self.id),
+            "adminId": str(self.adminId.id),  
             "flightNumber": self.flightNumber,
-            "departure": self.departure,
+            "flightDate": self.flightDate,
+            "_from": self._from,
             "destination": self.destination,
-            "departureTime": self.departureTime,
-            "arrivalTime": self.arrivalTime,
             "seatNumber": self.seatNumber,
             "isBooked": self.isBooked,
             "createdAt": self.createdAt

@@ -6,15 +6,15 @@ import os
 
 load_dotenv()
 
-connect(host=os.getenv("MONGO_URI"))
+connect(host=os.getenv("MONGO_URI"), db="Airline")
 
 
 class User(Document):
-    name = StringField(required=True)
+    fullname = StringField(required=True)
     email = StringField(required=True, unique=True)
     password = StringField(required=True)
     isAdmin = BooleanField(default=False)
-    created_at = DateTimeField(default=datetime.now)
+    createdAt = DateTimeField(default=datetime.now)
     
     def set_password(self, password):
         self.password = hashpw(password.encode('utf-8'), gensalt()).decode('utf-8')
@@ -24,6 +24,7 @@ class User(Document):
     
     def to_json(self):
         return {
+            "_id" : str(self.id),
             "name": self.name,
             "email": self.email,
             "isAdmin": self.isAdmin

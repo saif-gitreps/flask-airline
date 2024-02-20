@@ -1,6 +1,7 @@
 from models.booking_model import Booking
 from models.flight_model import Flight
 from flask import jsonify, request, session
+from datetime import datetime
 
 def search_flights():
     try:
@@ -19,18 +20,29 @@ def search_flights():
     except Exception as error:
         return jsonify({'error': str(error)}), 500
    
-def get_booked_flights():
+def get_flight_status():
     try:
         if not session.get("isAdmin") and not session.get("isAuthenticated"):
             return jsonify({'error': 'User not authenticated'}), 401
          
         data = request.json
-        flightNumber = data['flightNumber']
-        flightDate = data['flightDate']
+        flightNumber = data.get('flightNumber')
+        flightDate = data.get('flightDate')
         
-        flights = Flight.objects(flightNumber = flightNumber, flightDate = flightDate,isBooked = True)
+        query = {}
+        if flightNumber:
+            query['flightNumber'] = flightNumber
+        if flightDate:
+            query['flightDate'] = flightDate
+            
+        if flightNumber and flightDate:
+            flights = Flight.objects(flightNumber=flightNumber, flightDate=flightDate)
+        else:
+            flights = Flight.objects(**query)
         
-        return jsonify(flights), 200
+        all_flights = [flight.to_json() for flight in flights]
+        
+        return jsonify({"message": "Flight retrieved successfully", "flights": all_flights}), 200
     
     except Exception as error:
         return jsonify({'error': str(error)}), 500
@@ -38,17 +50,22 @@ def get_booked_flights():
 def add_flight():
     try:
         if not session.get("isAdmin") and not session.get("isAuthenticated"):
-            return jsonify({'error': 'User not authenticated'}), 401
+            return jsonify({'error': 'User not authorized'}), 401
         
         data = request.json
-        admindId = request.session['_id']
-        flightNumber = data['flightNumber']
-        flightDate = data['flightDate']
-        _from = data['_from']
-        destination = data['destination']
-        seatNumber = data['seatNumber']
         
-        flight = Flight(admindId, flightNumber, flightDate, _from, destination, seatNumber)
+        flightDate = data.get('flightDate' )
+        date_format = "%Y-%m-%dT%H:%M:%S"
+        
+        flight = Flight(
+            adminId=session.get("_id"),
+            flightNumber=data.get('flightNumber'),
+            flightDate=datetime.strptime(flightDate, date_format),
+            _from=data.get('_from'),
+            destination=data.get('destination'),
+            seatNumber=data.get('seatNumber'),
+            isBooked=False
+        )
         flight.save()
         
         return jsonify({'message': 'Flight added successfully'}), 200
@@ -59,7 +76,7 @@ def add_flight():
 def remove_flight(flightId):
     try:
         if not session.get("isAdmin") and not session.get("isAuthenticated"):
-            return jsonify({'error': 'User not authenticated'}), 401
+            return jsonify({'error': 'User not authprized'}), 401
         
         flight = Flight.objects(id=flightId).first()
         
