@@ -5,6 +5,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="stylesheet" href="styles/shared.css" />
       <link rel="stylesheet" href="styles/auth.css" />
+      <script src="scripts/auth.js" defer></script>
       <title>Login</title>
    </head>
    <body>
@@ -31,12 +32,12 @@
             <div>
                <label for="">Login as :</label>
             </div>
-            <input type="radio" name="user" value="customer" id="customer" />
+            <input type="radio" name="user" value="customer" id="customer" required />
             <label for="customer">Customer</label>
-            <input type="radio" name="user" value="admin" id="admin" />
+            <input type="radio" name="user" value="admin" id="admin" required />
             <label for="admin">Admin</label>
             <div>
-               <button type="button" id="login-form-submit">Login</button>
+               <button type="submit" id="login-form-submit">Login</button>
             </div>
             <p id="error-message"></p>
          </form>
