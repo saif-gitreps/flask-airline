@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="stylesheet" href="styles/shared.css" />
+      <link rel="stylesheet" href="styles/auth.css" />
+      <title>Login</title>
+   </head>
+   <body>
+      <header>
+         <h1>Welcome to Flask Airlines</h1>
+         <h3>Login to book tickets for your next travel destination!</h3>
+      </header>
+      <main>
+         <form id="login-form">
+            <div>
+               <label for="email">Email :</label>
+               <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  placeholder="email@yahoo.com"
+                  required
+               />
+            </div>
+            <div>
+               <label for="password">Password :</label>
+               <input type="password" name="password" id="password" required />
+            </div>
+            <div>
+               <label for="">Login as :</label>
+            </div>
+            <input type="radio" name="user" value="customer" id="customer" />
+            <label for="customer">Customer</label>
+            <input type="radio" name="user" value="admin" id="admin" />
+            <label for="admin">Admin</label>
+            <div>
+               <button type="button" id="login-form-submit">Login</button>
+            </div>
+            <p id="error-message"></p>
+         </form>
+         <h3>Don't have an account? <a href="register.html">Sign up</a></h3>
+      </main>
+   </body>
+</html>
